@@ -1,4 +1,4 @@
-pip freeze > requirements.txt
-aiogram
+aiogram==3.20.0.post0  # Укажите актуальную версию aiogram, которую вы используете
+aiohttp
 aiosqlite
 openpyxl
