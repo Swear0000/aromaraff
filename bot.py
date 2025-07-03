@@ -848,8 +848,7 @@ async def start_polling(app):
         dp.start_polling(bot),
         clear_old_carts_task()
     )
-async def handle(request):
-    """Простой обработчик для корневого пути"""
+async def handle(request):     #Простой обработчик для корневого пути
     return web.Response(text="Бот работает!")
     
 #if __name__ == '__main__':
