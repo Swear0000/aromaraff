@@ -2,3 +2,5 @@ aiogram  # Укажите актуальную версию aiogram, котор�
 aiohttp
 aiosqlite
 openpyxl
+apscheduler
+python-dotenv
