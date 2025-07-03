@@ -12,7 +12,7 @@ import os
 import json
 import datetime
 from aiohttp import web
-import os
+
 
 # Настройки
 BOT_TOKEN = os.getenv("BOT_TOKEN") # Вставь токен от @BotFather
@@ -841,29 +841,34 @@ async def cancel_edit_product(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Редактирование товара отменено.")
     await callback.answer()
 
-# --- Запуск бота ---
-async def start_polling(app):
-    await init_db()
-    await asyncio.gather(
-        dp.start_polling(bot),
-        clear_old_carts_task()
-    )
-async def handle(request):     #Простой обработчик для корневого пути
+
+
+
+async def handle(request):
+    #Простой обработчик для корневого пути"""
     return web.Response(text="Бот работает!")
-    
-#if __name__ == '__main__':
-#    asyncio.run(main())
+
+async def start_bot(app):
+    #Запуск бота в фоновом режиме"""
+    try:
+        await init_db()
+        # Запускаем очистку корзин в фоне
+        asyncio.create_task(clear_old_carts_task())
+        # Запускаем бота в фоне (НЕ БЛОКИРУЮЩИЙ вызов)
+        asyncio.create_task(dp.start_polling(bot))
+        print("✅ Бот запущен в фоновом режиме")
+    except Exception as e:
+        print(f"🚨 Ошибка запуска бота: {e}")
 
 if __name__ == '__main__':
-    # Создаем приложение aiohttp
     app = web.Application()
     app.router.add_get('/', handle)
     
-    # Запускаем long-polling как фоновую задачу
-    app.on_startup.append(start_polling)
+    # Регистрируем функцию запуска бота
+    app.on_startup.append(start_bot)
     
-    # Получаем порт из переменных окружения Render
+    # Получаем порт из переменных окружения
     port = int(os.environ.get("PORT", 10000))
     
-    # Запускаем веб-сервер
+    print(f"🚀 Запуск веб-сервера на порту {port}")
     web.run_app(app, host='0.0.0.0', port=port)
