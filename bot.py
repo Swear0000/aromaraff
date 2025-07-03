@@ -13,10 +13,10 @@ import json
 import datetime
 
 # Настройки
-BOT_TOKEN = '8034399145:AAEVIsikLZDVD3aGMJ8cDZaeTN91VOivAHM'  # Вставь токен от @BotFather
-YOUR_ADMIN_ID = 6329978401  # Вставь свой Telegram ID
-ADMIN_EMAIL = 'swear000@yandex.ru'  # Вставь свой Яндекс email
-EMAIL_PASSWORD = 'cobrcbopfkzzfisr'  # Вставь пароль приложения от Яндекса
+BOT_TOKEN = os.getenv("BOT_TOKEN") # Вставь токен от @BotFather
+YOUR_ADMIN_ID = int(os.getenv("YOUR_ADMIN_ID")) # Вставь свой Telegram ID
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL") # Вставь свой Яндекс email
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD") # Вставь пароль приложения от Яндекса
 
 # Константы для очистки корзины
 CART_LIFETIME_DAYS = 14  # Корзина хранится 2 недели
