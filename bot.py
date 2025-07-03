@@ -11,6 +11,8 @@ from openpyxl import Workbook
 import os
 import json
 import datetime
+from aiohttp import web
+import os
 
 # Настройки
 BOT_TOKEN = os.getenv("BOT_TOKEN") # Вставь токен от @BotFather
@@ -840,12 +842,29 @@ async def cancel_edit_product(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 # --- Запуск бота ---
-async def main():
+async def start_polling(app):
     await init_db()
     await asyncio.gather(
         dp.start_polling(bot),
         clear_old_carts_task()
     )
+async def handle(request):
+    """Простой обработчик для корневого пути"""
+    return web.Response(text="Бот работает!")
+    
+#if __name__ == '__main__':
+#    asyncio.run(main())
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    # Создаем приложение aiohttp
+    app = web.Application()
+    app.router.add_get('/', handle)
+    
+    # Запускаем long-polling как фоновую задачу
+    app.on_startup.append(start_polling)
+    
+    # Получаем порт из переменных окружения Render
+    port = int(os.environ.get("PORT", 10000))
+    
+    # Запускаем веб-сервер
+    web.run_app(app, host='0.0.0.0', port=port)
