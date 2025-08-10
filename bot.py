@@ -16,10 +16,10 @@ from openpyxl.styles import Font, Alignment, Border, Side  # Добавьте э
 import logging
 
 # Настройки
-BOT_TOKEN = os.getenv("BOT_TOKEN") # Вставь токен от @BotFather
-YOUR_ADMIN_ID = int(os.getenv("YOUR_ADMIN_ID")) # Вставь свой Telegram ID
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL") # Вставь свой Яндекс email
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD") # Вставь пароль приложения от Яндекса
+BOT_TOKEN = '8034399145:AAEVIsikLZDVD3aGMJ8cDZaeTN91VOivAHM'  # Вставь токен от @BotFather
+YOUR_ADMIN_ID = 6329978401  # Вставь свой Telegram ID
+ADMIN_EMAIL = 'swear000@yandex.ru'  # Вставь свой Яндекс email
+EMAIL_PASSWORD = 'cobrcbopfkzzfisr'  # Вставь пароль приложения от Яндекса
 
 # Константы для очистки корзины
 CART_LIFETIME_DAYS = 14  # Корзина хранится 2 недели
@@ -2074,17 +2074,41 @@ async def edit_characteristic_select_field(callback: types.CallbackQuery, state:
         cursor = await db.execute("SELECT name, value, price, quantity FROM product_characteristics WHERE id = ?", (characteristic_id,))
         char_name, char_value, char_price, char_quantity = await cursor.fetchone()
 
+    
+    # Безопасное построение кнопки "↩️ Назад" — пытаемся найти callback в последних рядах inline-клавиатуры,
+    # если не удаётся — используем явный fallback 'back_to_char_product_list'.
+    back_cb = 'back_to_char_product_list'
+    try:
+        inline_kb = callback.message.reply_markup.inline_keyboard if callback.message.reply_markup else []
+        if inline_kb:
+            # проверяем последний ряд
+            last_row = inline_kb[-1] if len(inline_kb) >= 1 else None
+            if last_row and len(last_row) > 0:
+                last_cb = getattr(last_row[0], 'callback_data', None)
+                if last_cb and 'manage_char_for_prod_' in last_cb:
+                    parts = last_cb.split('_')
+                    if len(parts) > 4:
+                        back_cb = f"manage_char_for_prod_{parts[4]}"
+            # проверяем предпоследний ряд
+            if back_cb == 'back_to_char_product_list' and len(inline_kb) > 1:
+                sec_row = inline_kb[-2]
+                if sec_row and len(sec_row) > 0:
+                    sec_cb = getattr(sec_row[0], 'callback_data', None)
+                    if sec_cb and 'manage_char_for_prod_' in sec_cb:
+                        parts = sec_cb.split('_')
+                        if len(parts) > 4:
+                            back_cb = f"manage_char_for_prod_{parts[4]}"
+    except Exception as e:
+        print(f"DEBUG: unable to determine back callback: {e}")
+
     markup = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=f"Название ({char_name})", callback_data="edit_char_field_name")],
         [InlineKeyboardButton(text=f"Значение ({char_value})", callback_data="edit_char_field_value")],
         [InlineKeyboardButton(text=f"Цена ({char_price / 100:.2f}₽)", callback_data="edit_char_field_price")],
         [InlineKeyboardButton(text=f"Количество ({char_quantity} шт.)", callback_data="edit_char_field_quantity")],
-        [InlineKeyboardButton(text="↩️ Назад", callback_data=f"manage_char_for_prod_{callback.message.reply_markup.inline_keyboard[-1][0].callback_data.split('_')[4] 
-            if len(callback.message.reply_markup.inline_keyboard) > 0 
-            and 'manage_char_for_prod_' in callback.message.reply_markup.inline_keyboard[-1][0].callback_data else callback.message.reply_markup.inline_keyboard[-2][0].callback_data.split('_')[4] 
-            if len(callback.message.reply_markup.inline_keyboard) > 1 
-            and 'manage_char_for_prod_' in callback.message.reply_markup.inline_keyboard[-2][0].callback_data else 'back_to_char_product_list'}")]
+        [InlineKeyboardButton(text="↩️ Назад", callback_data=back_cb)]
     ])
+
     await callback.message.edit_text(f"Выберите поле для редактирования характеристики ID {characteristic_id}:", reply_markup=markup)
     await state.set_state(AdminStates.edit_characteristic_field)
     await callback.answer()
@@ -4526,3 +4550,4 @@ if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     print(f"🚀 Запуск веб-сервера на порту {port}")
     web.run_app(app, host='0.0.0.0', port=port)
+    
